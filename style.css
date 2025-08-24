@@ -9,6 +9,32 @@
     color: #e0e0e0; /* Light grey text */
 }
 
+#start-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    z-index: 100;
+}
+
+#start-overlay h1 {
+    font-size: 40px;
+}
+
+#start-overlay p {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
 body {
     background-color: #121212; /* Dark background */
     color: #e0e0e0; /* Light grey text */
