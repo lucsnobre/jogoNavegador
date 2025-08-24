@@ -9,7 +9,11 @@
     const imageSources = {
         player: 'assets/vitinho.png',
         enemy: 'assets/pdiddy.png',
-        powerUp: 'assets/estrela.png'
+        powerUp: 'assets/estrela.png', // Fallback
+        health: 'assets/gin.webp',
+        spear: 'assets/lanca.webp',
+        ice: 'assets/ice.png',
+        invincibility: 'assets/novinha.webp'
     };
 
     function loadImages(sources, callback) {
@@ -27,9 +31,11 @@
         for (let src in sources) {
             images[src] = new Image();
             images[src].onload = onAssetLoad;
-            images[src].onerror = () => {
-                console.error(`Failed to load image: ${sources[src]}.`);
-                onAssetLoad();
+            images[src].onerror = (err) => {
+                console.error(`Failed to load image '${src}' at path: ${sources[src]}`);
+                console.error(err); // Log the actual error event
+                images[src].loadFailed = true; // Mark this image as failed
+                onAssetLoad(); // Still count it as 'loaded' to not hang the game
             };
             images[src].src = sources[src];
         }
@@ -105,7 +111,7 @@
     }
 
     function createPowerUp(x, y, type = 'score') { // type: 'score', 'health', 'spear', 'invincibility', 'ice'
-        return { x, y, width: 30, height: 30, image: images.powerUp, color: 'gold', type };
+        return { x, y, width: 30, height: 30, image: images[type] || images.powerUp, color: 'gold', type };
     }
 
     const levels = [
@@ -274,11 +280,20 @@
                 ctx.filter = 'saturate(0%) brightness(1.5) contrast(200%)'; // Blue-ish tint
             }
 
-            if (e.image && e.image.complete && e.image.naturalHeight !== 0) {
+            if (e.image && e.image.complete && e.image.naturalHeight !== 0 && !e.image.loadFailed) {
                 ctx.drawImage(e.image, e.x, e.y, e.width, e.height);
             } else {
-                ctx.fillStyle = e.color;
+                // Fallback drawing for failed or missing images
+                ctx.fillStyle = 'red';
                 ctx.fillRect(e.x, e.y, e.width, e.height);
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y);
+                ctx.lineTo(e.x + e.width, e.y + e.height);
+                ctx.moveTo(e.x + e.width, e.y);
+                ctx.lineTo(e.x, e.y + e.height);
+                ctx.stroke();
             }
 
             ctx.filter = 'none'; // Reset filter
@@ -325,6 +340,10 @@
     }
 
     function restartGame() {
+        const music = document.getElementById('bg-music');
+        if (music) {
+            music.play().catch(e => console.error("Music autoplay failed. User interaction needed."));
+        }
         gameState = 'PLAYING';
         score = 0;
         scoreEl.innerText = score;
